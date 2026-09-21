@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
+import 'data/favorites_api.dart';
 import 'screens/home_shell.dart';
 import 'state/favorites_controller.dart';
 
@@ -11,7 +13,7 @@ class LineupsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FavoritesScope(
-      controller: FavoritesController(),
+      controller: FavoritesController(api: FavoritesApi(http.Client())),
       child: MaterialApp(
         title: 'CS2 Lineups',
         theme: ThemeData(

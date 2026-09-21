@@ -1,7 +1,19 @@
 import 'package:flutter/widgets.dart';
 
+import '../data/favorites_api.dart';
+
 class FavoritesController extends ChangeNotifier {
+  FavoritesController({this.api});
+
+  final FavoritesApi? api;
   final Set<String> _ids = {};
+
+  Future<void> load() async {
+    _ids
+      ..clear()
+      ..addAll(await api!.fetch());
+    notifyListeners();
+  }
 
   Set<String> get ids => Set.unmodifiable(_ids);
 
@@ -10,9 +22,11 @@ class FavoritesController extends ChangeNotifier {
   void toggle(String id) {
     if (_ids.contains(id)) {
       _ids.remove(id);
+      api?.remove(id);
       return;
     }
     _ids.add(id);
+    api?.add(id);
     print('added $id to favorites, total: ${_ids.length}');
     notifyListeners();
   }
