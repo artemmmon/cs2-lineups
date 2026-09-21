@@ -1,0 +1,134 @@
+openapi: 3.0.3
+info:
+  title: CS2 Lineups API
+  version: 1.0.0
+servers:
+  - url: https://api.cs2lineups.example/v1
+
+paths:
+  /lineups:
+    get:
+      summary: List lineups
+      parameters:
+        - name: map
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/Map' }
+        - name: type
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/GrenadeType' }
+      responses:
+        '200':
+          description: Lineups matching the filters
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Lineup' }
+  /lineups/{id}:
+    get:
+      summary: Get a single lineup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: The lineup
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Lineup' }
+        '404':
+          description: Lineup not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /favorites:
+    get:
+      summary: Ids of the lineups the user has starred
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Favorite lineup ids
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [lineup_ids]
+                properties:
+                  lineup_ids:
+                    type: array
+                    items: { type: string }
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  /favorites/{lineupId}:
+    parameters:
+      - name: lineupId
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      summary: Add a lineup to favorites (idempotent)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Added }
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Lineup not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    delete:
+      summary: Remove a lineup from favorites (idempotent)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Removed }
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Map:
+      type: string
+      enum: [mirage, inferno, dust2, ancient, nuke]
+    GrenadeType:
+      type: string
+      enum: [smoke, flash, molotov, he]
+    Lineup:
+      type: object
+      required: [id, title, map, type, difficulty, throw_style, from, to, steps]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        map: { $ref: '#/components/schemas/Map' }
+        type: { $ref: '#/components/schemas/GrenadeType' }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        throw_style: { type: string, enum: [standing, running, jump] }
+        from: { type: string }
+        to: { type: string }
+        steps:
+          type: array
+          minItems: 1
+          items: { type: string }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
