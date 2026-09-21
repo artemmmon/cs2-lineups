@@ -56,7 +56,7 @@ void _handle(HttpRequest request) {
   if (request.method == 'GET' && single != null) {
     return _get(request, single.group(1)!);
   }
-  _send(request, 404, {'code': 'not_found', 'message': 'No such route'});
+  _sendError(request, 404, 'not_found', 'No such route');
 }
 
 void _list(HttpRequest request) {
@@ -67,23 +67,30 @@ void _list(HttpRequest request) {
       .where((l) => type == null || l['type'] == type)
       .map(_toJson)
       .toList();
-  _send(request, 200, {'items': result, 'total': result.length});
+  _sendJson(request, 200, {'items': result, 'total': result.length});
 }
 
 void _get(HttpRequest request, String id) {
-  for (final lineup in _lineups) {
-    if (lineup['id'] == id) return _send(request, 200, _toJson(lineup));
+  final lineup = _lineups.where((l) => l['id'] == id).firstOrNull;
+  if (lineup == null) {
+    return _sendError(request, 404, 'not_found', 'Lineup not found');
   }
-  _send(request, 404, {'code': 'not_found', 'message': 'Lineup not found'});
+  _sendJson(request, 200, _toJson(lineup));
 }
 
 Map<String, Object> _toJson(Map<String, Object> lineup) =>
     {...lineup}..remove('to');
 
-void _send(HttpRequest request, int status, Object body) {
+void _sendJson(HttpRequest request, int status, Object body) {
   request.response
     ..statusCode = status
     ..headers.contentType = ContentType.json
     ..write(jsonEncode(body))
     ..close();
+}
+
+void _sendError(HttpRequest request, int status, String code, String message) {
+  _sendJson(request, status, {
+    'error': {'code': code, 'message': message},
+  });
 }
