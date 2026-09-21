@@ -10,7 +10,7 @@ paths:
     get:
       summary: List lineups
       parameters:
-        - name: map_name
+        - name: map
           in: query
           required: false
           schema: { $ref: '#/components/schemas/Map' }
@@ -24,8 +24,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items: { $ref: '#/components/schemas/Lineup' }
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Lineup' }
+                  total: { type: integer }
   /lineups/{id}:
     get:
       summary: Get a single lineup
@@ -112,7 +117,7 @@ components:
       enum: [smoke, flash, molotov, he]
     Lineup:
       type: object
-      required: [id, title, map, type, difficulty, throw_style, from, to, steps]
+      required: [id, title, map, type, difficulty, throw_style, from, steps]
       properties:
         id: { type: string }
         title: { type: string }
@@ -121,7 +126,6 @@ components:
         difficulty: { type: string, enum: [easy, medium, hard] }
         throw_style: { type: string, enum: [standing, running, jump] }
         from: { type: string }
-        to: { type: string }
         steps:
           type: array
           minItems: 1

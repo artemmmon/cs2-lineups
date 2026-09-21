@@ -60,21 +60,25 @@ void _handle(HttpRequest request) {
 }
 
 void _list(HttpRequest request) {
-  final map = request.uri.queryParameters['map_name'];
+  final map = request.uri.queryParameters['map'];
   final type = request.uri.queryParameters['type'];
   final result = _lineups
       .where((l) => map == null || l['map'] == map)
       .where((l) => type == null || l['type'] == type)
+      .map(_toJson)
       .toList();
-  _send(request, 200, result);
+  _send(request, 200, {'items': result, 'total': result.length});
 }
 
 void _get(HttpRequest request, String id) {
   for (final lineup in _lineups) {
-    if (lineup['id'] == id) return _send(request, 200, lineup);
+    if (lineup['id'] == id) return _send(request, 200, _toJson(lineup));
   }
   _send(request, 404, {'code': 'not_found', 'message': 'Lineup not found'});
 }
+
+Map<String, Object> _toJson(Map<String, Object> lineup) =>
+    {...lineup}..remove('to');
 
 void _send(HttpRequest request, int status, Object body) {
   request.response
