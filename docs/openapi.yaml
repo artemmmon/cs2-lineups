@@ -10,7 +10,7 @@ paths:
     get:
       summary: List lineups
       parameters:
-        - name: map
+        - name: map_name
           in: query
           required: false
           schema: { $ref: '#/components/schemas/Map' }
