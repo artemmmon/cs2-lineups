@@ -52,22 +52,33 @@ void _handle(HttpRequest request) {
   if (request.method == 'GET' && path == '/v1/lineups') {
     return _list(request);
   }
-  final single = RegExp(r'^/v1/lineups/([^/]+)$').firstMatch(path);
+  final single = RegExp(r'^/v1/lineup/([^/]+)$').firstMatch(path);
   if (request.method == 'GET' && single != null) {
     return _get(request, single.group(1)!);
   }
   _send(request, 404, {'code': 'not_found', 'message': 'No such route'});
 }
 
+const _pageSize = 20;
+
 void _list(HttpRequest request) {
   final map = request.uri.queryParameters['map'];
   final type = request.uri.queryParameters['type'];
+  final page = int.tryParse(request.uri.queryParameters['page'] ?? '') ?? 1;
+  if (map == null) {
+    return _send(request, 400, {
+      'code': 'bad_request',
+      'message': 'map is required',
+    });
+  }
   final result = _lineups
-      .where((l) => map == null || l['map'] == map)
+      .where((l) => l['map'] == map)
       .where((l) => type == null || l['type'] == type)
       .map(_toJson)
+      .skip((page - 1) * _pageSize)
+      .take(_pageSize)
       .toList();
-  _send(request, 200, {'items': result, 'total': result.length});
+  _send(request, 200, {'data': result, 'count': result.length, 'page': page});
 }
 
 void _get(HttpRequest request, String id) {
