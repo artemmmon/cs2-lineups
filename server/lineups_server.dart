@@ -77,8 +77,16 @@ void _get(HttpRequest request, String id) {
   _send(request, 404, {'code': 'not_found', 'message': 'Lineup not found'});
 }
 
-Map<String, Object> _toJson(Map<String, Object> lineup) =>
-    {...lineup}..remove('to');
+Map<String, Object> _toJson(Map<String, Object> lineup) => {
+      'id': lineup['id']!,
+      'title': lineup['title']!,
+      'map': lineup['map']!,
+      'type': lineup['type']!,
+      'difficulty': lineup['difficulty'] == 'hard' ? 'expert' : lineup['difficulty']!,
+      'throwStyle': lineup['throw_style']!,
+      'from': lineup['from']!,
+      'steps': (lineup['steps']! as List).join('\n'),
+    };
 
 void _send(HttpRequest request, int status, Object body) {
   request.response
