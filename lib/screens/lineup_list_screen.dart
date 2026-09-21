@@ -14,18 +14,53 @@ class LineupListScreen extends StatefulWidget {
 
 class _LineupListScreenState extends State<LineupListScreen> {
   final _repository = const LineupsRepository();
+  final _searchController = TextEditingController();
   CsMap? _selectedMap;
+  String _query = '';
+  bool _easiestFirst = false;
 
   @override
   Widget build(BuildContext context) {
-    final lineups = _selectedMap == null
+    var lineups = _selectedMap == null
         ? _repository.getAll()
         : _repository.getByMap(_selectedMap!);
 
+    if (_query.isNotEmpty) {
+      lineups = lineups.where((l) => l.title.contains(_query)).toList();
+    }
+
+    if (_easiestFirst) {
+      lineups.sort((a, b) => b.difficulty.index - a.difficulty.index);
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('CS2 Lineups')),
+      appBar: AppBar(
+        title: const Text('CS2 Lineups'),
+        actions: [
+          IconButton(
+            tooltip: 'Easiest first',
+            icon: Icon(
+              Icons.sort,
+              color: _easiestFirst ? Theme.of(context).colorScheme.primary : null,
+            ),
+            onPressed: () => setState(() => _easiestFirst = !_easiestFirst),
+          ),
+        ],
+      ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Search lineups',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => setState(() => _query = value),
+            ),
+          ),
           SizedBox(
             height: 56,
             child: ListView(
@@ -54,7 +89,7 @@ class _LineupListScreenState extends State<LineupListScreen> {
           ),
           Expanded(
             child: lineups.isEmpty
-                ? const Center(child: Text('No lineups for this map yet'))
+                ? const Center(child: Text('No lineups found'))
                 : ListView.builder(
                     itemCount: lineups.length,
                     itemBuilder: (context, index) {

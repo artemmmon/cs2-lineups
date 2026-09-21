@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/lineups_repository.dart';
+import '../state/favorites_controller.dart';
 
 class LineupDetailScreen extends StatelessWidget {
   const LineupDetailScreen({super.key, required this.lineupId});
@@ -18,8 +19,32 @@ class LineupDetailScreen extends StatelessWidget {
       );
     }
 
+    final favorites = FavoritesScope.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(lineup.title)),
+      appBar: AppBar(
+        title: Text(lineup.title),
+        actions: [
+          IconButton(
+            icon: Icon(
+              favorites.isFavorite(lineup.id) ? Icons.star : Icons.star_border,
+            ),
+            onPressed: () async {
+              favorites.toggle(lineup.id);
+              await Future.delayed(const Duration(milliseconds: 300));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    favorites.isFavorite(lineup.id)
+                        ? 'Added to favorites'
+                        : 'Removed from favorites',
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
