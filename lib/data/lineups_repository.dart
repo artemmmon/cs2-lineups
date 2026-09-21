@@ -139,6 +139,32 @@ class LineupsRepository {
         'Jump-throw with left click.',
       ],
     ),
+    Lineup(
+      id: 'inferno-b-site-smoke',
+      title: 'Coffins smoke from Banana',
+      map: CsMap.mirage,
+      type: GrenadeType.smoke,
+      difficulty: Difficulty.medium,
+      throwStyle: ThrowStyle.standing,
+      from: 'Banana',
+      to: 'Coffins',
+      steps: [
+        'Stand next to the sandbags on Banana.',
+        'Aim at the top of the far wall.',
+        'Throw.',
+      ],
+    ),
+    Lineup(
+      id: 'ancient-a-flash',
+      title: 'A site pop flash',
+      map: CsMap.ancient,
+      type: GrenadeType.flash,
+      difficulty: Difficulty.hard,
+      throwStyle: ThrowStyle.jump,
+      from: 'A main',
+      to: 'A site',
+      steps: [],
+    ),
   ];
 
   List<Lineup> getAll() => List.unmodifiable(_lineups);
