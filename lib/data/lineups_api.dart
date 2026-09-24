@@ -16,7 +16,7 @@ class ApiException implements Exception {
 class LineupsApi {
   LineupsApi(this._client, {this.baseUrl = defaultBaseUrl});
 
-  static const defaultBaseUrl = 'https://api.cs2lineups.example/v1';
+  static const defaultBaseUrl = 'http://api.cs2lineups.example/v1';
 
   final http.Client _client;
   final String baseUrl;
@@ -29,11 +29,15 @@ class LineupsApi {
       },
     );
 
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) throw ApiException(response.statusCode);
+    try {
+      final response = await _client.get(uri);
+      if (response.statusCode != 200) throw ApiException(response.statusCode);
 
-    final list = jsonDecode(response.body) as List<dynamic>;
-    return list.map((e) => _fromJson(e as Map<String, dynamic>)).toList();
+      final list = jsonDecode(response.body) as List<dynamic>;
+      return list.map((e) => _fromJson(e as Map<String, dynamic>)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   Future<Lineup?> fetchLineup(String id) async {
