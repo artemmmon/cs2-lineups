@@ -1,7 +1,9 @@
 // Minimal mock backend implementing docs/openapi.yaml.
-// Run with: dart run server/lineups_server.dart
+// Run with: DEVICE_TOKEN_SECRET=dev dart run server/lineups_server.dart
 import 'dart:convert';
 import 'dart:io';
+
+import 'auth/device_token.dart';
 
 const _lineups = <Map<String, Object>>[
   {
@@ -39,7 +41,10 @@ const _lineups = <Map<String, Object>>[
   },
 ];
 
+final _favoriteIds = <String>{};
+
 Future<void> main() async {
+  logDeviceTokenFingerprint();
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
   stdout.writeln('Listening on http://localhost:8080/v1');
   await for (final request in server) {
@@ -56,18 +61,58 @@ void _handle(HttpRequest request) {
   if (request.method == 'GET' && single != null) {
     return _get(request, single.group(1)!);
   }
+
+  final favorites = RegExp(r'^/v1/favorites(?:/([^/]+))?$').firstMatch(path);
+  if (favorites != null) {
+    if (!isValidDeviceToken(request)) {
+      return _send(request, 401, {
+        'code': 'unauthorized',
+        'message': 'Missing or invalid X-Device-Token',
+      });
+    }
+    final id = favorites.group(1);
+    if (request.method == 'GET' && id == null) return _listFavorites(request);
+    if (request.method == 'PUT' && id != null) return _addFavorite(request, id);
+    if (request.method == 'DELETE' && id != null) {
+      return _removeFavorite(request, id);
+    }
+  }
+
   _send(request, 404, {'code': 'not_found', 'message': 'No such route'});
 }
+
+void _listFavorites(HttpRequest request) {
+  _send(request, 200, {'lineup_ids': _favoriteIds.toList()});
+}
+
+void _addFavorite(HttpRequest request, String id) {
+  _favoriteIds.add(id);
+  request.response
+    ..statusCode = 204
+    ..close();
+}
+
+void _removeFavorite(HttpRequest request, String id) {
+  _favoriteIds.remove(id);
+  request.response
+    ..statusCode = 204
+    ..close();
+}
+
+const _pageSize = 20;
 
 void _list(HttpRequest request) {
   final map = request.uri.queryParameters['map'];
   final type = request.uri.queryParameters['type'];
+  final page = int.tryParse(request.uri.queryParameters['page'] ?? '') ?? 1;
   final result = _lineups
       .where((l) => map == null || l['map'] == map)
       .where((l) => type == null || l['type'] == type)
       .map(_toJson)
+      .skip((page - 1) * _pageSize)
+      .take(_pageSize)
       .toList();
-  _send(request, 200, {'items': result, 'total': result.length});
+  _send(request, 200, {'items': result, 'total': result.length, 'page': page});
 }
 
 void _get(HttpRequest request, String id) {
