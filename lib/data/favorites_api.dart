@@ -39,4 +39,12 @@ class FavoritesApi {
       throw Exception('Failed to remove favorite: ${response.statusCode}');
     }
   }
+
+  Future<void> clearAll({String? userId}) async {
+    final query = userId == null ? '' : '?user=$userId';
+    await _client.delete(
+      Uri.parse('$baseUrl/favorites$query'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+  }
 }

@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '../data/favorites_api.dart';
 
 class FavoritesController extends ChangeNotifier {
-  FavoritesController({this.api});
+  FavoritesController({this.api}) {
+    _sync = Timer.periodic(const Duration(seconds: 30), (_) => load());
+  }
 
   final FavoritesApi? api;
   final Set<String> _ids = {};
+  late final Timer _sync;
 
   Future<void> load() async {
     _ids
@@ -16,6 +21,12 @@ class FavoritesController extends ChangeNotifier {
   }
 
   Set<String> get ids => Set.unmodifiable(_ids);
+
+  Future<void> clearAll() async {
+    _ids.clear();
+    notifyListeners();
+    api!.clearAll();
+  }
 
   bool isFavorite(String id) => _ids.contains(id);
 

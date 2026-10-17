@@ -17,7 +17,38 @@ class FavoritesScreen extends StatelessWidget {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Favorites (${favorites.length})')),
+      appBar: AppBar(
+        title: Text('Favorites (${favorites.length})'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_sweep),
+            onPressed: () async {
+              final ok = await showDialog<bool>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text('Clear all favorites?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+              );
+              if (ok!) {
+                await controller.clearAll();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Favorites cleared')),
+                );
+              }
+            },
+          ),
+        ],
+      ),
       body: favorites.isEmpty
           ? const Center(child: Text('Tap the star on a lineup to save it'))
           : ListView.builder(
