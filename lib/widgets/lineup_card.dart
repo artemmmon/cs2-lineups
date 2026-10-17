@@ -8,8 +8,8 @@ class LineupCard extends StatelessWidget {
   final Lineup lineup;
   final VoidCallback onTap;
 
-  Color _difficultyColor(Difficulty difficulty) {
-    switch (difficulty) {
+  Color _difficultyColor(Difficulty d) {
+    switch (d) {
       case Difficulty.easy:
         return Colors.green;
       case Difficulty.medium:
