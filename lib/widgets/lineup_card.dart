@@ -36,6 +36,7 @@ class LineupCard extends StatelessWidget {
       child: ListTile(
         onTap: onTap,
         isThreeLine: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           backgroundColor: lineup.type.color.withValues(alpha: 0.2),
           child: Icon(lineup.type.icon, color: lineup.type.color),
